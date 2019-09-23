@@ -23,7 +23,7 @@
         resolution: 1
       });
 
-      function randomTubeLength(min = 2, max = 3) {
+      function randomTubeLength(min = 2, max = 4) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
@@ -85,12 +85,12 @@
 
         // create tubes
         function createTube(offset, tubeLength, isUpperTube) {
-          console.log(tubeLength);
           const tube = new PIXI.Container();
           const tubeBody = new PIXI.Sprite(resources.tubeBody.texture);
           const tubeHead = new PIXI.Sprite(resources.tubeHead.texture);
           tubeBody.width = tubeHead.width = tubeHead.height = TUBE_SIZE;
-          tubeBody.height = TUBE_SIZE * tubeLength * (isUpperTube ? 1 : -1);
+          tubeBody.height =
+            TUBE_SIZE * (tubeLength - 1) * (isUpperTube ? 1 : -1);
           tubeBody.anchor.set(0.5, 0);
           tubeHead.anchor.set(0.5, 0);
           tubeHead.position.y = isUpperTube
@@ -111,13 +111,23 @@
         for (let i = 0; i < MAX_SCORE; i++) {
           const offset =
             bird.position.x + DISTANT_BETWEEN_TUBE + i * DISTANT_BETWEEN_TUBE;
-          const upperTube = createTube(offset, randomTubeLength(), true);
-          const lowerTube = createTube(offset, randomTubeLength(), false);
+          const upperTubeLength = randomTubeLength(3, 5);
+          const lowerTubeLength = randomTubeLength(2, 3);
+          const upperTube = createTube(offset, upperTubeLength, true);
+          const lowerTube = createTube(offset, lowerTubeLength, false);
+          const text = new PIXI.Text(offset);
+          text.x = offset;
+
           tubesContainer.addChild(upperTube);
           tubesContainer.addChild(lowerTube);
+          tubesContainer.addChild(text);
         }
         app.stage.addChild(tubesContainer);
 
+        const positionText = new PIXI.Text("Basic text in pixi");
+        app.stage.addChild(positionText);
+
+        // game runner
         app.ticker.add(() => {
           tubesContainer.position.x -= 2;
 
@@ -125,7 +135,7 @@
             acceleration /= 1.1;
             bird.rotation = Math.PI / -4;
             if (acceleration < 1) {
-              direction = 1;
+              direction = DOWN;
             }
           } else if (direction === DOWN) {
             if (bird.rotation < Math.PI / 3) {
@@ -143,12 +153,23 @@
           }
 
           // check bird should not go lower than screen
-          if (currentPos.y <= app.renderer.height) {
+          if (
+            currentPos.y <= app.renderer.height &&
+            (direction === DOWN || currentPos.y > 0)
+          ) {
             let nextPostDistant = BIRD_SPEED * direction * acceleration;
             currentPos.y += nextPostDistant;
           }
 
           bird.position.set(currentPos.x, currentPos.y);
+
+          positionText.text = `${Math.floor(bird.position.y)} ${tubesContainer
+            .position.x *
+            -1 +
+            bird.position.x +
+            BIRD_SIZE}`;
+          positionText.x = bird.position.x;
+          positionText.y = bird.position.y - BIRD_SIZE;
         });
       });
 
