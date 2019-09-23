@@ -23,8 +23,14 @@
         resolution: 1
       });
 
+      function randomTubeLength(min = 2, max = 3) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
       app.loader.add("flappy", "assets/flappy.png");
       app.loader.add("background", "assets/background.png");
+      app.loader.add("tubeBody", "assets/tube.png");
+      app.loader.add("tubeHead", "assets/tube-e.png");
 
       // renderer
       app.loader.load((loader, resources) => {
@@ -32,14 +38,18 @@
         const BIRD_SIZE = 80;
         const BIRD_SPEED = 3;
         const BACKGROUND_SPEED = 1.5;
+        const DISTANT_BETWEEN_TUBE = 300;
+        const TUBE_SIZE = 75;
         const UP = -1;
         const DOWN = 1;
+        const MAX_SCORE = 200;
 
         // init sprite and container
         const bird = new PIXI.Sprite(resources.flappy.texture);
         const background = new PIXI.Sprite(resources.background.texture);
+        const tubesContainer = new PIXI.Container();
 
-        // setup
+        // setup app
         const basePosition = {
           x: app.renderer.width / 2,
           y: app.renderer.height / 2
@@ -47,6 +57,7 @@
         let currentPos = { x: basePosition.x, y: basePosition.y };
         let direction = 0;
         let acceleration = 0;
+        let tubesPosition = [];
 
         document.body.onkeyup = function(e) {
           if (e.keyCode == 32) {
@@ -67,13 +78,49 @@
         // create bird
         bird.width = BIRD_SIZE;
         bird.height = BIRD_SIZE;
-        bird.anchor.x = 0.5;
-        bird.anchor.y = 0.5;
+        bird.anchor.set(0.5, 0.5);
         bird.position.x = currentPos.x;
         bird.position.y = currentPos.y;
         app.stage.addChild(bird);
 
+        // create tubes
+        function createTube(offset, tubeLength, isUpperTube) {
+          console.log(tubeLength);
+          const tube = new PIXI.Container();
+          const tubeBody = new PIXI.Sprite(resources.tubeBody.texture);
+          const tubeHead = new PIXI.Sprite(resources.tubeHead.texture);
+          tubeBody.width = tubeHead.width = tubeHead.height = TUBE_SIZE;
+          tubeBody.height = TUBE_SIZE * tubeLength * (isUpperTube ? 1 : -1);
+          tubeBody.anchor.set(0.5, 0);
+          tubeHead.anchor.set(0.5, 0);
+          tubeHead.position.y = isUpperTube
+            ? tubeBody.height
+            : (tubeBody.height + TUBE_SIZE) * -1;
+          tube.position.x = offset;
+          tube.position.y = isUpperTube ? 0 : app.renderer.height;
+          if (isUpperTube) {
+            tubeHead.anchor.y = 1;
+            tubeHead.scale.y *= -1;
+          }
+
+          tube.addChild(tubeBody);
+          tube.addChild(tubeHead);
+          return tube;
+        }
+
+        for (let i = 0; i < MAX_SCORE; i++) {
+          const offset =
+            bird.position.x + DISTANT_BETWEEN_TUBE + i * DISTANT_BETWEEN_TUBE;
+          const upperTube = createTube(offset, randomTubeLength(), true);
+          const lowerTube = createTube(offset, randomTubeLength(), false);
+          tubesContainer.addChild(upperTube);
+          tubesContainer.addChild(lowerTube);
+        }
+        app.stage.addChild(tubesContainer);
+
         app.ticker.add(() => {
+          tubesContainer.position.x -= 2;
+
           if (direction === UP) {
             acceleration /= 1.1;
             bird.rotation = Math.PI / -4;
