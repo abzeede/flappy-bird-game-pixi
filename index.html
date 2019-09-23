@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Flappy bird</title>
+  </head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.1/pixi.min.js"></script>
+  <body>
+    <script>
+      let app = new PIXI.Application({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        antialias: true,
+        transparent: false,
+        resolution: 1
+      });
+
+      app.renderer.backgroundColor = "0x4caf50";
+      app.loader.add("flappy", "https://i.imgur.com/cben88F.png");
+
+      // renderer
+      app.loader.load((loader, resources) => {
+        // constant
+        const BIRD_SIZE = 80;
+        const BIRD_SPEED = 3;
+        const UP = -1;
+        const DOWN = 1;
+
+        // init sprite and container
+        const bird = new PIXI.Sprite(resources.flappy.texture);
+
+        // setup
+        const basePosition = {
+          x: app.renderer.width / 2,
+          y: app.renderer.height / 2
+        };
+        let currentPos = { x: basePosition.x, y: basePosition.y };
+        let direction = 0;
+        let acceleration = 0;
+
+        document.body.onkeyup = function(e) {
+          if (e.keyCode == 32) {
+            currentPos = {
+              x: currentPos.x,
+              y: currentPos.y - BIRD_SPEED // move up
+            };
+            direction = UP;
+            acceleration = 3;
+          }
+        };
+
+        // create bird
+        bird.width = BIRD_SIZE;
+        bird.height = BIRD_SIZE;
+        bird.anchor.x = 0.5;
+        bird.anchor.y = 0.5;
+        bird.position.x = currentPos.x;
+        bird.position.y = currentPos.y;
+        app.stage.addChild(bird);
+
+        app.ticker.add(() => {
+          if (direction === UP) {
+            acceleration /= 1.1;
+            bird.rotation = Math.PI / -4;
+            if (acceleration < 1) {
+              direction = 1;
+            }
+          } else if (direction === DOWN) {
+            if (bird.rotation < Math.PI / 3) {
+              bird.rotation += 0.08 + acceleration * 0.01;
+            }
+            if (acceleration <= 5) {
+              acceleration *= 1.04;
+            }
+          }
+
+          // new position
+          let nextPostDistant = BIRD_SPEED * direction * acceleration;
+
+          // check bird should not go lower than screen
+          if (currentPos.y <= app.renderer.height) {
+            currentPos.y += nextPostDistant;
+          }
+
+          bird.position.set(currentPos.x, currentPos.y);
+        });
+      });
+
+      document.body.appendChild(app.view);
+    </script>
+  </body>
+</html>
