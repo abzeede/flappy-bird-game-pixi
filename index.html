@@ -3,6 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <title>Flappy bird</title>
+    <style>
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        margin: 0;
+      }
+    </style>
   </head>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.1/pixi.min.js"></script>
   <body>
@@ -15,19 +23,21 @@
         resolution: 1
       });
 
-      app.renderer.backgroundColor = "0x4caf50";
-      app.loader.add("flappy", "https://i.imgur.com/cben88F.png");
+      app.loader.add("flappy", "assets/flappy.png");
+      app.loader.add("background", "assets/background.png");
 
       // renderer
       app.loader.load((loader, resources) => {
         // constant
         const BIRD_SIZE = 80;
         const BIRD_SPEED = 3;
+        const BACKGROUND_SPEED = 1.5;
         const UP = -1;
         const DOWN = 1;
 
         // init sprite and container
         const bird = new PIXI.Sprite(resources.flappy.texture);
+        const background = new PIXI.Sprite(resources.background.texture);
 
         // setup
         const basePosition = {
@@ -48,6 +58,11 @@
             acceleration = 3;
           }
         };
+
+        // create background
+        background.width = window.innerWidth * 1.5;
+        background.height = window.innerHeight;
+        app.stage.addChild(background);
 
         // create bird
         bird.width = BIRD_SIZE;
@@ -74,11 +89,15 @@
             }
           }
 
-          // new position
-          let nextPostDistant = BIRD_SPEED * direction * acceleration;
+          if (background.position.x * -1 > window.innerWidth / 2) {
+            background.position.x = 0;
+          } else {
+            background.position.x -= BACKGROUND_SPEED;
+          }
 
           // check bird should not go lower than screen
           if (currentPos.y <= app.renderer.height) {
+            let nextPostDistant = BIRD_SPEED * direction * acceleration;
             currentPos.y += nextPostDistant;
           }
 
