@@ -35,6 +35,7 @@
       // renderer
       app.loader.load((loader, resources) => {
         // constant
+        const DEBUG_MODE = true;
         const BIRD_SIZE = 80;
         const BIRD_SPEED = 3;
         const BACKGROUND_SPEED = 1.5;
@@ -42,7 +43,7 @@
         const TUBE_SIZE = 75;
         const UP = -1;
         const DOWN = 1;
-        const MAX_SCORE = 200;
+        const TOTAL_TUBES = 1000;
 
         // init sprite and container
         const bird = new PIXI.Sprite(resources.flappy.texture);
@@ -108,24 +109,29 @@
           return tube;
         }
 
-        for (let i = 0; i < MAX_SCORE; i++) {
+        for (let i = 0; i < TOTAL_TUBES; i++) {
           const offset =
             bird.position.x + DISTANT_BETWEEN_TUBE + i * DISTANT_BETWEEN_TUBE;
           const upperTubeLength = randomTubeLength(3, 5);
           const lowerTubeLength = randomTubeLength(2, 3);
           const upperTube = createTube(offset, upperTubeLength, true);
           const lowerTube = createTube(offset, lowerTubeLength, false);
-          const text = new PIXI.Text(offset);
-          text.x = offset;
 
           tubesContainer.addChild(upperTube);
           tubesContainer.addChild(lowerTube);
-          tubesContainer.addChild(text);
+
+          if (DEBUG_MODE) {
+            const text = new PIXI.Text(offset);
+            text.x = offset;
+            tubesContainer.addChild(text);
+          }
         }
         app.stage.addChild(tubesContainer);
 
-        const positionText = new PIXI.Text("Basic text in pixi");
-        app.stage.addChild(positionText);
+        const birdPositionText = new PIXI.Text("");
+        if (DEBUG_MODE) {
+          app.stage.addChild(birdPositionText);
+        }
 
         // game runner
         app.ticker.add(() => {
@@ -163,13 +169,13 @@
 
           bird.position.set(currentPos.x, currentPos.y);
 
-          positionText.text = `${Math.floor(bird.position.y)} ${tubesContainer
-            .position.x *
-            -1 +
-            bird.position.x +
-            BIRD_SIZE}`;
-          positionText.x = bird.position.x;
-          positionText.y = bird.position.y - BIRD_SIZE;
+          if (DEBUG_MODE) {
+            birdPositionText.text = `${Math.floor(
+              bird.position.y
+            )} ${tubesContainer.position.x * -1 + bird.position.x + BIRD_SIZE}`;
+            birdPositionText.x = bird.position.x;
+            birdPositionText.y = bird.position.y - BIRD_SIZE;
+          }
         });
       });
 
