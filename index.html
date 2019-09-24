@@ -97,13 +97,14 @@
           tubeHead.position.y = isUpperTube
             ? tubeBody.height
             : (tubeBody.height + TUBE_SIZE) * -1;
-          tube.position.x = offset;
-          tube.position.y = isUpperTube ? 0 : app.renderer.height;
+
           if (isUpperTube) {
             tubeHead.anchor.y = 1;
             tubeHead.scale.y *= -1;
           }
 
+          tube.position.x = offset;
+          tube.position.y = isUpperTube ? 0 : app.renderer.height;
           tube.addChild(tubeBody);
           tube.addChild(tubeHead);
           return tube;
@@ -170,9 +171,11 @@
           bird.position.set(currentPos.x, currentPos.y);
 
           if (DEBUG_MODE) {
-            birdPositionText.text = `${Math.floor(
+            birdPositionText.text = `y: ${Math.floor(
               bird.position.y
-            )} ${tubesContainer.position.x * -1 + bird.position.x + BIRD_SIZE}`;
+            )} x: ${tubesContainer.position.x * -1 +
+              bird.position.x +
+              BIRD_SIZE}`;
             birdPositionText.x = bird.position.x;
             birdPositionText.y = bird.position.y - BIRD_SIZE;
           }
